@@ -1,4 +1,9 @@
-import React from 'react';
+// src/pages/login.tsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useFormik } from 'formik';
+import { useAuth } from '../hooks/useAuth.ts';
+import { loginSchema } from '../validations/loginSchema.ts';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -11,6 +16,7 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
+import Alert from '@mui/material/Alert';
 
 function Copyright() {
   return (
@@ -26,6 +32,38 @@ function Copyright() {
 }
 
 export default function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const formik = useFormik({
+    initialValues: {
+      username: '',
+      password: '',
+      remember: false
+    },
+    validationSchema: loginSchema,
+    onSubmit: async (values) => {
+      try {
+        setError(null);
+        setLoading(true);
+        
+        await login(values.username, values.password);
+        
+        if (values.remember) {
+          // Handle remember me functionality if needed
+        }
+        
+        navigate('/dashboard');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Login failed');
+      } finally {
+        setLoading(false);
+      }
+    }
+  });
+
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
@@ -47,20 +85,30 @@ export default function Login() {
         <Typography component="h1" variant="h5">
           Sign in
         </Typography>
-        <Box component="form" noValidate sx={{ mt: 1 }}>
-          <TextField
-            variant="outlined"
+        
+        {error && (
+          <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        <Box component="form" onSubmit={formik.handleSubmit} noValidate sx={{ mt: 1 }}>
+        <TextField
             margin="normal"
             required
             fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
+            id="username"    // Changed from email to username
+            label="Username" // Changed label
+            name="username"  // Changed from email to username
+            autoComplete="username"
             autoFocus
+            value={formik.values.username}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.username && Boolean(formik.errors.username)}
+            helperText={formik.touched.username && formik.errors.username}
           />
           <TextField
-            variant="outlined"
             margin="normal"
             required
             fullWidth
@@ -69,9 +117,21 @@ export default function Login() {
             type="password"
             id="password"
             autoComplete="current-password"
+            value={formik.values.password}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.password && Boolean(formik.errors.password)}
+            helperText={formik.touched.password && formik.errors.password}
           />
           <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
+            control={
+              <Checkbox 
+                name="remember" 
+                color="primary" 
+                checked={formik.values.remember}
+                onChange={formik.handleChange}
+              />
+            }
             label="Remember me"
           />
           <Button
@@ -79,9 +139,10 @@ export default function Login() {
             fullWidth
             variant="contained"
             color="primary"
+            disabled={loading}
             sx={{ mt: 3, mb: 2 }}
           >
-            Sign In
+            {loading ? 'Signing in...' : 'Sign In'}
           </Button>
           <Grid container>
             <Grid item xs>
@@ -103,4 +164,3 @@ export default function Login() {
     </Container>
   );
 }
-
