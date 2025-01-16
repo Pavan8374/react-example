@@ -1,7 +1,7 @@
 // pages/contents/index.tsx
 
 import React, { useState } from 'react';
-import '..//styles/contents.css';
+import '../styles/contents.css';
 //import img from './assets/images/consoleyes.png';
 
 const mediaJSON = { "categories" : [ { "name" : "Movies",
