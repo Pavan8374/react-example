@@ -1,0 +1,13 @@
+/* src/components/Spinner.css */
+.spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full height of the viewport */
+    width: 100vw; /* Full width of the viewport */
+    position: fixed; /* Fixed position to cover entire viewport */
+    top: 0; /* Align to top */
+    left: 0; /* Align to left */
+    z-index: 9999; /* Ensure it appears above other content */
+  }
+  

@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/contents.css';
 import { contentService } from '../services/contentService.ts'; // Import contentService
+import Spinner from '../components/Spinner.tsx'; // Import Spinner component
 
-const ITEMS_PER_PAGE = 10; // Set items per page
+const ITEMS_PER_PAGE = 10;
 
 const VideoModeration: React.FC = () => {
   const [videos, setVideos] = useState<any[]>([]);
@@ -26,7 +27,7 @@ const VideoModeration: React.FC = () => {
     };
 
     fetchVideos();
-  }, [currentPage]); // Fetch videos when currentPage changes
+  }, [currentPage]);
 
   const handleVideoClick = (video: any) => {
     setSelectedVideo(video);
@@ -39,7 +40,7 @@ const VideoModeration: React.FC = () => {
   const totalPages = Math.ceil(videos.length / ITEMS_PER_PAGE);
 
   if (loading) {
-    return <div>Loading...</div>; // Show loading state
+    return <Spinner />; // Show spinner while loading
   }
 
   if (error) {
@@ -53,7 +54,7 @@ const VideoModeration: React.FC = () => {
         {videos.map((video, index) => (
           <div key={index} className="video-card" onClick={() => handleVideoClick(video)}>
             <img
-              src={video.profilePicture || "https://i.ibb.co/2ZSPrY9/anime-8788959-1280.jpg"} // Use profile picture or default thumbnail
+              src={video.profilePicture || "https://i.ibb.co/2ZSPrY9/anime-8788959-1280.jpg"}
               alt={video.userName}
               className="video-thumbnail"
             />
