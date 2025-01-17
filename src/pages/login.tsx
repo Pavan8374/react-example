@@ -97,9 +97,9 @@ export default function Login() {
             margin="normal"
             required
             fullWidth
-            id="username"    // Changed from email to username
-            label="Username" // Changed label
-            name="username"  // Changed from email to username
+            id="username"    
+            label="Username" 
+            name="username"  
             autoComplete="username"
             autoFocus
             value={formik.values.username}
