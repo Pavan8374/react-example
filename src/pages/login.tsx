@@ -36,7 +36,7 @@ function Copyright() {
     <Typography variant="body2" color="textSecondary" align="center">
       {'Copyright © '}
       <Link color="inherit" href="#">
-        Your Website
+        Admin panel
       </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
@@ -79,7 +79,7 @@ export default function Login() {
   });
 
   return (
-    <PageBackground variant="adminDark">
+    <PageBackground variant="adminGeometric">
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <Paper

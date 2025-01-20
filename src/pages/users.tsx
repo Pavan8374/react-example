@@ -95,7 +95,7 @@ const Users = () => {
   );
 
   return (
-    <PageBackground variant="adminDark">
+    <PageBackground variant="adminGeometric">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <Typography variant="h4" gutterBottom>User Analytics Dashboard</Typography>
 

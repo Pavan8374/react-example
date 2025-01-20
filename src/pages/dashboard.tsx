@@ -197,7 +197,7 @@ function Dashboard() {
   const theme = useTheme();
 
   return (
-    <PageBackground variant="adminDark">
+    <PageBackground variant="adminGeometric">
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Paper 
           elevation={0}

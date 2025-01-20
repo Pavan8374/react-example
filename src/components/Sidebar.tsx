@@ -9,24 +9,18 @@ import {
   Box,
   IconButton,
   useTheme,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Button,
+  Typography,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
   Person as PersonIcon,
   Article as ContentIcon,
   LogoutRounded,
-  Menu as MenuIcon,
-  ChevronLeft as ChevronLeftIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.ts';
 import LogoutDialog from './LogoutDialog.tsx';
+import logo from '../assets/images/software-engineer.png';
 
 const drawerWidth = 240;
 
@@ -97,28 +91,43 @@ const Sidebar = () => {
             '& .MuiDrawer-paper': {
               width: open ? drawerWidth : 65,
               boxSizing: 'border-box',
+              backgroundColor: '#2C3E50', // Dark blue color for sidebar background
+              color: '#ECF0F1', // Light gray for text
               transition: theme.transitions.create('width', {
                 easing: theme.transitions.easing.sharp,
                 duration: theme.transitions.duration.enteringScreen,
               }),
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
+              boxShadow: '0px 4px 10px rgba(0,0,0,0.2)',
             },
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: open ? 'flex-end' : 'center',
-              padding: theme.spacing(0, 1),
-              ...theme.mixins.toolbar,
-            }}
-          >
-            <IconButton onClick={handleDrawerToggle} sx={{ color: 'inherit' }}>
-              {open ? <ChevronLeftIcon /> : <MenuIcon />}
-            </IconButton>
+          {/* Sidebar Header with Logo */}
+          <Box sx={{ display: 'flex', alignItems: 'center', padding: theme.spacing(2) }}>
+            <img 
+              src={logo} 
+              alt="Logo" 
+              style={{ 
+                width: open ? '40px' : '30px', 
+                height: 'auto', 
+                marginRight: open ? theme.spacing(1) : theme.spacing(0),
+                cursor: 'pointer' // Change cursor to pointer for interactivity
+              }} 
+              onClick={handleDrawerToggle} // Toggle sidebar on logo click
+            />
+            <Typography 
+              variant="h6" 
+              noWrap 
+              component="div" 
+              sx={{ 
+                flexGrow: 1, 
+                opacity: open ? 1 : 0, // Hide app name when collapsed
+                transition: 'opacity 0.3s ease' // Smooth transition for opacity change
+              }}
+            >
+              Admin Panel
+            </Typography>
           </Box>
+
           <List>
             {sidebarItems.map((item) => (
               <ListItem key={item.path} disablePadding sx={{ display: 'block' }}>
@@ -126,23 +135,27 @@ const Sidebar = () => {
                   sx={{
                     minHeight: 48,
                     justifyContent: open ? 'initial' : 'center',
-                    px: 2.5,
+                    px: open ? 2 : 'auto',
                     backgroundColor:
                       location.pathname === item.path
-                        ? 'rgba(255, 255, 255, 0.08)'
+                        ? '#34495E' // Darker shade for active item
                         : 'transparent',
                     '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                      backgroundColor:
+                        location.pathname === item.path
+                          ? '#5D6D7E' // Lighter shade when hovering over active item
+                          : '#3B5998', // Hover effect for other items (Facebook blue)
                     },
                   }}
                   onClick={() => handleNavigation(item)}
                 >
                   <ListItemIcon
                     sx={{
-                      minWidth: 0,
-                      mr: open ? 3 : 'auto',
+                      minWidth: open ? undefined : 'auto',
+                      mr: open ? undefined : 'auto',
                       justifyContent: 'center',
-                      color: 'inherit',
+                      color:
+                        location.pathname === item.path ? '#ECF0F1' : '#BDC3C7', // Change icon color based on active state
                     }}
                   >
                     {item.icon}
@@ -150,9 +163,10 @@ const Sidebar = () => {
                   <ListItemText
                     primary={item.title}
                     sx={{
-                      opacity: open ? 1 : 0,
+                      opacity: open ? undefined : 0,
                       '& .MuiTypography-root': {
-                        fontWeight: location.pathname === item.path ? 'bold' : 'normal',
+                        fontWeight:
+                          location.pathname === item.path ? 'bold' : 'normal',
                       },
                     }}
                   />
@@ -165,13 +179,13 @@ const Sidebar = () => {
 
       {/* Logout Confirmation Dialog */}
       <LogoutDialog
-      open={logoutDialogOpen}
-      onClose={() => setLogoutDialogOpen(false)}
-      onConfirm={() => {
-        setLogoutDialogOpen(false);
-        handleLogout();
-      }}
-    />
+        open={logoutDialogOpen}
+        onClose={() => setLogoutDialogOpen(false)}
+        onConfirm={() => {
+          setLogoutDialogOpen(false);
+          handleLogout();
+        }}
+      />
     </>
   );
 };
