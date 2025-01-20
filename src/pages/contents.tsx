@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { contentService } from '../services/contentService.ts'; // Import contentService
 import Spinner from '../components/Spinner.tsx'; // Import Spinner component
 import PageBackground from '../components/PageBackground.tsx';
+import '../styles/contents.css';
 import {
   Container,
   Grid,
