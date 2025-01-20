@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import '../styles/contents.css';
 import { contentService } from '../services/contentService.ts'; // Import contentService
 import Spinner from '../components/Spinner.tsx'; // Import Spinner component
+import PageBackground from '../components/PageBackground.tsx';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -93,9 +94,12 @@ const VideoModeration: React.FC = () => {
 
 const Contents: React.FC = () => {
   return (
+        <PageBackground variant="adminMesh">
+    
     <div className="index-page">
       <VideoModeration />
     </div>
+    </PageBackground>
   );
 };
 
