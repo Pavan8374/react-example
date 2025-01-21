@@ -20,6 +20,7 @@ import {
   DialogTitle,
   Divider,
   Tooltip,
+  Checkbox,
 } from '@mui/material';
 import {TrendingUp, TrendingDown, Close as CloseIcon } from '@mui/icons-material';
 import SaveIcon from '@mui/icons-material/Save';
@@ -29,7 +30,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 
 // Types
 interface Video {
-  contentId: string;
+  id: any;
   userName: string;
   description: string;
   profilePicture: string;
@@ -38,6 +39,12 @@ interface Video {
   viewCount: number;
   likeCount: number;
   shareCount: number;
+}
+interface VideoSelection {
+  contentId: string;
+  newStatus: number;
+  originalStatus: number;
+  isSelected: boolean;
 }
 
 interface StatusChanges {
@@ -50,6 +57,8 @@ interface VideoCardProps {
   onStatusChange: (contentId: string, status: number) => void;
   onSaveStatus: (contentId: string) => void;
   currentStatus: number;
+  isSelected: boolean;
+  onSelectVideo: (contentId: string, isSelected: boolean) => void;
 }
 
 interface VideoModalProps {
@@ -173,8 +182,11 @@ const VideoCard: React.FC<VideoCardProps> = ({
   onVideoClick, 
   onStatusChange, 
   onSaveStatus, 
-  currentStatus 
+  currentStatus, 
+  isSelected,
+  onSelectVideo
 }) => {
+
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + 'M';
@@ -184,10 +196,37 @@ const VideoCard: React.FC<VideoCardProps> = ({
     return num.toString();
   };
 
+  const handleCardClick = (event: React.MouseEvent) => {
+    if (!(event.target as HTMLElement).closest('.controls-area')) {
+      onVideoClick(video);
+    }
+  };
+  const handleCheckboxClick = (event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent card click when clicking checkbox
+  };
+
   return (
     <StyledCard>
       <CardContent>
-        <Box onClick={() => onVideoClick(video)} sx={{ cursor: 'pointer' }}>
+        <Box 
+          className="controls-area"
+          display="flex" 
+          justifyContent="space-between" 
+          alignItems="center" 
+          mb={2}
+        >
+          <Checkbox
+            checked={isSelected}
+            onChange={(e) => onSelectVideo(video.id, e.target.checked)}
+            color="primary"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <Typography variant="subtitle2">
+            Status: {getStatusLabel(video.contentStatus)}
+          </Typography>
+        </Box>
+        
+        <Box onClick={handleCardClick} sx={{ cursor: 'pointer' }}>
           <img
             src={video.profilePicture || "https://i.ibb.co/2ZSPrY9/anime-8788959-1280.jpg"}
             alt={video.userName}
@@ -249,19 +288,13 @@ const VideoCard: React.FC<VideoCardProps> = ({
         
         <Divider sx={{ my: 2 }} />
         
-        <Box display="flex" gap={2} alignItems="center">
+        <Box display="flex" gap={2} alignItems="center" className="controls-area">
           <StyledSelect
             value={currentStatus}
-            onChange={(e) => onStatusChange(video.contentId, e.target.value as number)}
+            onChange={(e) => onStatusChange(video.id, e.target.value as number)}
             fullWidth
-            MenuProps={{
-              PaperProps: {
-                style: {
-                  borderRadius: '8px',
-                  marginTop: '8px',
-                },
-              },
-            }}
+            disabled={!isSelected}
+            onClick={(e) => e.stopPropagation()}
           >
             <MenuItem value={0}>Published</MenuItem>
             <MenuItem value={1}>Under Review</MenuItem>
@@ -270,7 +303,11 @@ const VideoCard: React.FC<VideoCardProps> = ({
           </StyledSelect>
           <StyledButton
             startIcon={<SaveIcon />}
-            onClick={() => onSaveStatus(video.contentId)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSaveStatus(video.id);
+            }}
+            disabled={!isSelected || currentStatus === video.contentStatus}
             sx={{ minWidth: '100px' }}
           >
             Save
@@ -280,6 +317,22 @@ const VideoCard: React.FC<VideoCardProps> = ({
     </StyledCard>
   );
 };
+
+const getStatusLabel = (status: number): string => {
+  switch (status) {
+    case 0:
+      return 'Published';
+    case 1:
+      return 'Under Review';
+    case 2:
+      return 'Archived';
+    case 3:
+      return 'Rejected';
+    default:
+      return 'Unknown';
+  }
+};
+
 
 const ContentsAnalytics: React.FC = () => {
   const analyticsData = [
@@ -323,58 +376,89 @@ const VideoModeration: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [contentStatus, setContentStatus] = useState<number>(1);
-  const [statusChanges, setStatusChanges] = useState<StatusChanges>({});
+  const [selectedVideos, setSelectedVideos] = useState<{ [key: string]: VideoSelection }>({});
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        setLoading(true);
-        const videoData = await contentService.fetchVideos(currentPage, ITEMS_PER_PAGE, contentStatus);
-        setVideos(videoData);
-      } catch (error: any) {
-        setError(error.message || 'An error occurred while fetching videos');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchVideos = async () => {
+    try {
+      setLoading(true);
+      const videoData = await contentService.fetchVideos(currentPage, ITEMS_PER_PAGE, contentStatus);
+      setVideos(videoData);
+    } catch (error: any) {
+      setError(error.message || 'An error occurred while fetching videos');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchVideos();
   }, [currentPage, contentStatus]);
 
+  const handleFilterChange = (newStatus: number) => {
+    setContentStatus(newStatus);
+    setCurrentPage(1); // Reset to first page when filter changes
+    setSelectedVideos({}); // Clear selections when filter changes
+  };
+
+  const handleSelectVideo = (id: string, isSelected: boolean) => {
+    setSelectedVideos(prev => {
+      if (isSelected) {
+        const video = videos.find(v => v.id === id);
+        if (!video) return prev;
+        
+        return {
+          ...prev,
+          [id]: {
+            contentId: id,
+            newStatus: video.contentStatus,
+            originalStatus: video.contentStatus,
+            isSelected
+          }
+        };
+      } else {
+        const { [id]: _, ...rest } = prev;
+        return rest;
+      }
+    });
+  };
+
   const handleStatusChange = (contentId: string, newStatus: number) => {
-    setStatusChanges((prev) => ({
-      ...prev,
-      [contentId]: newStatus,
-    }));
+    setSelectedVideos(prev => {
+      const currentSelection = prev[contentId];
+      if (!currentSelection) return prev;
+
+      return {
+        ...prev,
+        [contentId]: {
+          ...currentSelection,
+          newStatus
+        }
+      };
+    });
   };
 
   const handleSaveStatus = async (contentId: string) => {
+    const videoSelection = selectedVideos[contentId];
+    if (!videoSelection || videoSelection.newStatus === videoSelection.originalStatus) {
+      return;
+    }
+
     try {
       setLoading(true);
-      if (statusChanges[contentId] !== undefined) {
-        await contentService.manageVideo(contentId, statusChanges[contentId]);
-        setVideos((prev) =>
-          prev.map((video) =>
-            video.contentId === contentId
-              ? { ...video, contentStatus: statusChanges[contentId] }
-              : video
-          )
-        );
-  
-        setStatusChanges((prev) => {
-          const { [contentId]: _, ...remainingChanges } = prev;
-          return remainingChanges;
-        });
-      }
+      await contentService.manageVideo(contentId, videoSelection.newStatus);
+      await fetchVideos();
+      
+      setSelectedVideos(prev => {
+        const { [contentId]: _, ...rest } = prev;
+        return rest;
+      });
     } catch (error) {
       console.error('Error saving content status:', error);
     } finally {
       setLoading(false);
     }
   };
-
-  const totalPages = Math.ceil(videos.length / ITEMS_PER_PAGE);
 
   if (loading) {
     return <Spinner />;
@@ -391,7 +475,7 @@ const VideoModeration: React.FC = () => {
       <Box mb={3}>
         <StyledSelect
           value={contentStatus}
-          onChange={(e) => setContentStatus(e.target.value as number)}
+          onChange={(e) => handleFilterChange(e.target.value as number)}
           displayEmpty
           fullWidth
           sx={{ maxWidth: '200px' }}
@@ -404,17 +488,23 @@ const VideoModeration: React.FC = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {videos.map((video, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <VideoCard
-              video={video}
-              onVideoClick={setSelectedVideo}
-              onStatusChange={handleStatusChange}
-              onSaveStatus={handleSaveStatus}
-              currentStatus={statusChanges[video.contentId] ?? video.contentStatus}
-            />
-          </Grid>
-        ))}
+        {videos.map((video) => {
+          const selection = selectedVideos[video.id];
+          debugger;
+          return (
+            <Grid item xs={12} sm={6} md={4} key={video.id}>
+              <VideoCard
+                video={video}
+                currentStatus={selection?.newStatus ?? video.contentStatus}
+                isSelected={!!selection?.isSelected}
+                onVideoClick={setSelectedVideo}
+                onStatusChange={handleStatusChange}
+                onSaveStatus={handleSaveStatus}
+                onSelectVideo={handleSelectVideo}
+              />
+            </Grid>
+          );
+        })}
       </Grid>
 
       <VideoModal
@@ -422,20 +512,23 @@ const VideoModeration: React.FC = () => {
         onClose={() => setSelectedVideo(null)}
       />
 
-      <Box mt={3} display="flex" justifyContent="center" alignItems="center" className="pagination">
-        <button 
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} 
+      {/* Pagination */}
+      <Box mt={3} display="flex" justifyContent="center" alignItems="center" gap={2}>
+        <StyledButton
+          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
         >
           Previous
-        </button>
-        <Typography>Page {currentPage} of {totalPages}</Typography>
-        <button 
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))} 
-          disabled={currentPage === totalPages}
+        </StyledButton>
+        <Typography>
+          Page {currentPage}
+        </Typography>
+        <StyledButton
+          onClick={() => setCurrentPage(prev => prev + 1)}
+          disabled={videos.length < ITEMS_PER_PAGE}
         >
           Next
-        </button>
+        </StyledButton>
       </Box>
     </div>
   );
