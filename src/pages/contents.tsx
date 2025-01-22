@@ -21,6 +21,8 @@ import {
   Divider,
   Tooltip,
   Checkbox,
+  useTheme,
+  Paper,
 } from '@mui/material';
 import {TrendingUp, TrendingDown, Close as CloseIcon } from '@mui/icons-material';
 import SaveIcon from '@mui/icons-material/Save';
@@ -534,11 +536,29 @@ const VideoModeration: React.FC = () => {
   );
 };
 
+
 const Contents: React.FC = () => {
+const theme = useTheme();
+
   return (
     <PageBackground variant="adminGeometric">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h4" gutterBottom>Content Moderation Dashboard</Typography>
+      <Paper 
+          elevation={0}
+          sx={{ 
+            p: 3, 
+            mb: 4, 
+            borderRadius: 3,
+            background: theme.palette.mode === 'light' 
+              ? 'rgba(255, 255, 255, 0.8)'
+              : 'rgba(18, 18, 18, 0.8)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+      <Typography variant="h4" gutterBottom>
+        Content Moderation Dashboard
+      </Typography>
+      </Paper>
         <ContentsAnalytics />
         <VideoModeration />
       </Container>
