@@ -8,6 +8,7 @@ import Dashboard from './pages/dashboard.tsx';
 import Users from './pages/users.tsx';
 import Contents from './pages/contents.tsx';
 import React from 'react';
+import { SidebarProvider } from './context/SidebarContext.tsx';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -38,6 +39,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 const App = () => {
   return (
     <AuthProvider>
+      <SidebarProvider>
       <Router>
         <Routes>
           {/* Public Routes */}
@@ -85,6 +87,7 @@ const App = () => {
           />
         </Routes>
       </Router>
+      </SidebarProvider>
     </AuthProvider>
   );
 };
