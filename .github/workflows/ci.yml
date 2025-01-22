@@ -1,0 +1,91 @@
+name: React TypeScript CI
+
+on:
+  pull_request:
+    branches: [ dev ]
+  push:
+    branches: [ dev ]
+    
+# Add concurrency to prevent multiple simultaneous runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and Security Check
+    runs-on: ubuntu-latest
+    
+    # Add timeout to prevent hanging builds
+    timeout-minutes: 15
+    
+    # Add environment variables if needed
+    env:
+      NODE_ENV: production
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Full git history for better change detection
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    # Add cache for dependencies
+    - name: Cache node modules
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    
+    - name: Install dependencies
+      run: npm ci
+      
+    # Add TypeScript compilation check
+    - name: TypeScript Check
+      run: npx tsc --noEmit
+    
+    # Add ESLint check
+    - name: Lint Check
+      run: npm run lint
+      if: always() # Run even if previous steps fail
+    
+    - name: Security audit
+      run: |
+        npm audit
+        npx audit-ci --high # Fail on high or critical vulnerabilities
+      continue-on-error: false
+    
+    - name: Build
+      run: npm run build
+      env:
+        CI: false # Ignore warnings during build
+    
+    # Cache build output
+    - name: Cache build
+      uses: actions/cache@v4
+      with:
+        path: build
+        key: ${{ runner.os }}-build-${{ github.sha }}
+    
+    # Add error reporting (optional)
+    - name: Report Status
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const run_id = context.runId;
+          const conclusion = "${{ job.status }}";
+          
+          await github.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number: context.issue.number,
+            body: `Build status: ${conclusion}\nRun ID: ${run_id}`
+          });

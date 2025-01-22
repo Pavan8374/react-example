@@ -27,6 +27,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "lint": "eslint . --ext .ts,.tsx",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -53,5 +54,5 @@
     "@types/react-router-dom": "^5.3.3",
     "svgo": "^3.3.2",
     "web-vitals": "^4.2.4"
-  }
+  }  
 }
