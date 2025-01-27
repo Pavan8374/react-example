@@ -92,15 +92,12 @@ admin-panel/
 ### Theme Configuration
 The application uses MUI's **ThemeProvider** for consistent theming. You can customize the theme in the `theme.ts` file located in the `styles/` folder.
 
-### API Integration
-API endpoints and configurations are defined in the `services/` directory. Replace the base URLs and endpoints with your own backend services.
-
 ---
 
 ## Contributing
 
 Contributions are welcome! To contribute:
-1. Fork the repository.
+1. Clone the repository.
 2. Create a new branch:
    ```bash
    git checkout -b feature-name
@@ -122,8 +119,4 @@ Contributions are welcome! To contribute:
 This project is licensed under the [MIT License](LICENSE).
 
 ---
-
-## Contact
-
-For questions or feedback, feel free to reach out to the maintainers at **your-email@example.com**.
 
